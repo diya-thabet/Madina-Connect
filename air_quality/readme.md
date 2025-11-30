@@ -43,9 +43,7 @@ docker build -t madina-soap .
 # 2. Start the Service
 # Maps container port 8080 -> Host port 8081
 docker run -d -p 8081:8080 --name soap-app madina-soap
-
-
-
+```
 
 ## soap payload
 
@@ -89,11 +87,7 @@ docker run -d -p 8081:8080 --name soap-app madina-soap
 └── README.md           # Documentation
 
 
-
-
-
-
-
-
-
-
+## docs link
+```bash
+http://localhost:8081/ws/airQuality.wsdl
+```
