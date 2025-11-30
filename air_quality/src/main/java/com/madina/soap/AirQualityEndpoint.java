@@ -1,7 +1,9 @@
 package com.madina.soap;
 
-import com.madina.soap.airquality.GetAirQualityRequest;
-import com.madina.soap.airquality.GetAirQualityResponse;
+import com.madina.soap.airquality.*;
+import com.madina.soap.model.AirData;
+import com.madina.soap.repository.AirRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
 import org.springframework.ws.server.endpoint.annotation.RequestPayload;
@@ -12,52 +14,65 @@ public class AirQualityEndpoint {
 
     private static final String NAMESPACE_URI = "http://madina.com/soap/airquality";
 
+    @Autowired
+    private AirRepository repository;
+
+    // --- Operation 1: Get Single Zone ---
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "getAirQualityRequest")
     @ResponsePayload
     public GetAirQualityResponse getAirQuality(@RequestPayload GetAirQualityRequest request) {
         GetAirQualityResponse response = new GetAirQualityResponse();
 
-        String zone = request.getZone() != null ? request.getZone().toLowerCase() : "";
+        String requestedZone = request.getZone().trim();
+        AirData data = repository.findByZoneIgnoreCase(requestedZone)
+                .orElse(createDefaultData(requestedZone)); // Fallback if not found
 
-        // Simulating data based on the city zone
-        if (zone.contains("industrial") || zone.contains("factory")) {
-            // High Pollution
-            response.setAqi(158);
-            response.setStatus("Unhealthy");
-            response.setPm10(85.0);
-            response.setPm25(60.2);
-            response.setNo2(120.5); // High Nitrogen from factories
-            response.setCo2(450.0);
-            response.setO3(40.1);
-        } else if (zone.contains("park") || zone.contains("garden")) {
-            // Very Clean
-            response.setAqi(25);
-            response.setStatus("Good");
-            response.setPm10(12.0);
-            response.setPm25(5.5);
-            response.setNo2(10.1);
-            response.setCo2(405.0); // Normal CO2 levels
-            response.setO3(25.0);
-        } else if (zone.contains("downtown") || zone.contains("center")) {
-            // Traffic Pollution
-            response.setAqi(85);
-            response.setStatus("Moderate");
-            response.setPm10(45.0);
-            response.setPm25(22.5);
-            response.setNo2(65.0); // Traffic causes NO2
-            response.setCo2(420.0);
-            response.setO3(35.5);
+        response.setData(mapEntityToSoap(data));
+        return response;
+    }
+
+    // --- Operation 2: Compare Two Zones ---
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "compareZonesRequest")
+    @ResponsePayload
+    public CompareZonesResponse compareZones(@RequestPayload CompareZonesRequest request) {
+        CompareZonesResponse response = new CompareZonesResponse();
+
+        AirData d1 = repository.findByZoneIgnoreCase(request.getZone1())
+                .orElse(createDefaultData(request.getZone1()));
+        AirData d2 = repository.findByZoneIgnoreCase(request.getZone2())
+                .orElse(createDefaultData(request.getZone2()));
+
+        response.setResultZone1(mapEntityToSoap(d1));
+        response.setResultZone2(mapEntityToSoap(d2));
+
+        // Logic to generate comparison text
+        if (d1.getAqi() < d2.getAqi()) {
+            response.setAnalysis(d1.getZone() + " has better air quality than " + d2.getZone());
+        } else if (d1.getAqi() > d2.getAqi()) {
+            response.setAnalysis(d2.getZone() + " has better air quality than " + d1.getZone());
         } else {
-            // Default / Unknown Zone
-            response.setAqi(50);
-            response.setStatus("Fair");
-            response.setPm10(20.0);
-            response.setPm25(10.0);
-            response.setNo2(15.0);
-            response.setCo2(410.0);
-            response.setO3(30.0);
+            response.setAnalysis("Both zones have similar air quality.");
         }
 
         return response;
+    }
+
+    // Helper: Map Database Entity to SOAP generated class
+    private AirQualityData mapEntityToSoap(AirData entity) {
+        AirQualityData soapData = new AirQualityData();
+        soapData.setZone(entity.getZone());
+        soapData.setAqi(entity.getAqi());
+        soapData.setStatus(entity.getStatus());
+        soapData.setPm10(entity.getPm10());
+        soapData.setPm25(entity.getPm25());
+        soapData.setNo2(entity.getNo2());
+        soapData.setCo2(entity.getCo2());
+        soapData.setO3(entity.getO3());
+        return soapData;
+    }
+
+    // Helper: Default data if zone not found in DB
+    private AirData createDefaultData(String zone) {
+        return new AirData(zone + " (Unknown)", 0, "No Data", 0, 0, 0, 0, 0);
     }
 }

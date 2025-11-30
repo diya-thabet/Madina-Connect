@@ -3,13 +3,15 @@
 ## 📌 Overview
 This service is a critical component of the **Madina Smart City Platform**. It provides a robust, standardized interface for retrieving environmental data using the **SOAP (Simple Object Access Protocol)** standard.
 
-It adheres to a **Contract-First** design approach, ensuring strict type safety and interoperability across legacy and modern systems.
+It adheres to a **Contract-First** design approach, ensuring strict type safety and interoperability across legacy and modern systems.  
+It uses an embedded **H2 in-memory database** to store real-time pollution data for Tunisian cities.
 
 ### 🎯 Key Features
 * **Protocol:** SOAP 1.1 (WSDL/XSD based).
 * **Architecture:** Contract-First (XSD defines the model).
+* **Storage:** H2 In-Memory Database
 * **Data Points:** AQI, PM2.5, PM10, NO₂, CO₂, O₃.
-* **Tech Stack:** Java 17, Spring Boot 3, Spring Web Services.
+* **Tech Stack:** Java 17, Spring Boot 3, Spring Web Services, Spring Data JPA.
 * **Deployment:** Google Distroless Container (Security Hardened).
 
 ---
@@ -43,53 +45,3 @@ docker build -t madina-soap .
 # 2. Start the Service
 # Maps container port 8080 -> Host port 8081
 docker run -d -p 8081:8080 --name soap-app madina-soap
-```
-
-## soap payload
-```bash
-<soapenv:Envelope xmlns:soapenv="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)"
-                  xmlns:air="[http://madina.com/soap/airquality](http://madina.com/soap/airquality)">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <air:getAirQualityRequest>
-         <air:zone>industrial</air:zone>
-      </air:getAirQualityRequest>
-   </soapenv:Body>
-</soapenv:Envelope>
-```
-
-## expected response
-```bash
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)">
-   <SOAP-ENV:Header/>
-   <SOAP-ENV:Body>
-      <ns2:getAirQualityResponse xmlns:ns2="[http://madina.com/soap/airquality](http://madina.com/soap/airquality)">
-         <ns2:aqi>158</ns2:aqi>
-         <ns2:status>Unhealthy</ns2:status>
-         <ns2:pm10>85.0</ns2:pm10>
-         <ns2:pm25>60.2</ns2:pm25>
-         <ns2:no2>120.5</ns2:no2>
-         <ns2:co2>450.0</ns2:co2>
-         <ns2:o3>40.1</ns2:o3>
-      </ns2:getAirQualityResponse>
-   </SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
-```
-
-
-## Project Structure
-```bash
-├── src/
-│   ├── main/
-│   │   ├── java/       # Spring Boot Application & Endpoint Logic
-│   │   └── resources/
-│   │       └── air-quality.xsd  # The Source of Truth (Contract)
-├── Dockerfile          # Multi-stage Distroless build
-├── pom.xml             # Maven dependencies & XSD-to-Java plugin
-└── README.md           # Documentation
-```
-
-## docs link
-```bash
-http://localhost:8081/ws/airQuality.wsdl
-```

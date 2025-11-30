@@ -1,7 +1,21 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://madina.com/soap/airquality"
            targetNamespace="http://madina.com/soap/airquality" elementFormDefault="qualified">
 
-    <!-- The Request: Ask for a Zone -->
+    <!-- Reusable Data Structure -->
+    <xs:complexType name="AirQualityData">
+        <xs:sequence>
+            <xs:element name="zone" type="xs:string"/>
+            <xs:element name="aqi" type="xs:int"/>
+            <xs:element name="status" type="xs:string"/>
+            <xs:element name="pm10" type="xs:double"/>
+            <xs:element name="pm25" type="xs:double"/>
+            <xs:element name="no2" type="xs:double"/>
+            <xs:element name="co2" type="xs:double"/>
+            <xs:element name="o3" type="xs:double"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Operation 1: Get Single Zone -->
     <xs:element name="getAirQualityRequest">
         <xs:complexType>
             <xs:sequence>
@@ -10,19 +24,32 @@
         </xs:complexType>
     </xs:element>
 
-    <!-- The Response: Detailed Analysis -->
     <xs:element name="getAirQualityResponse">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="aqi" type="xs:int"/>
-                <xs:element name="status" type="xs:string"/>
-                <!-- Detailed Pollutants as requested -->
-                <xs:element name="pm10" type="xs:double"/>
-                <xs:element name="pm25" type="xs:double"/>
-                <xs:element name="no2" type="xs:double"/> <!-- Nitrogen Dioxide -->
-                <xs:element name="co2" type="xs:double"/> <!-- Carbon Dioxide -->
-                <xs:element name="o3" type="xs:double"/>  <!-- Ozone -->
+                <xs:element name="data" type="tns:AirQualityData"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+
+    <!-- Operation 2: Compare Two Zones (New Requirement) -->
+    <xs:element name="compareZonesRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="zone1" type="xs:string"/>
+                <xs:element name="zone2" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="compareZonesResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="resultZone1" type="tns:AirQualityData"/>
+                <xs:element name="resultZone2" type="tns:AirQualityData"/>
+                <xs:element name="analysis" type="xs:string"/> <!-- e.g., "Zone 1 is cleaner" -->
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
 </xs:schema>

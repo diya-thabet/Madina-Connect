@@ -1,0 +1,45 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:air="http://madina.com/soap/airquality">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <air:getAirQualityRequest>
+         <air:zone>Tunis-Centre</air:zone>
+      </air:getAirQualityRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+
+
+
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <ns2:getAirQualityResponse xmlns:ns2="http://madina.com/soap/airquality">
+         <ns2:data>
+            <ns2:zone>Tunis-Centre</ns2:zone>
+            <ns2:aqi>85</ns2:aqi>
+            <ns2:status>Moderate</ns2:status>
+            <ns2:pm10>45.0</ns2:pm10>
+            <ns2:pm25>22.5</ns2:pm25>
+            <ns2:no2>65.0</ns2:no2>
+            <ns2:co2>420.0</ns2:co2>
+            <ns2:o3>35.5</ns2:o3>
+         </ns2:data>
+      </ns2:getAirQualityResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:air="http://madina.com/soap/airquality">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <air:compareZonesRequest>
+         <air:zone1>Tunis-Centre</air:zone1>
+         <air:zone2>Carthage</air:zone2>
+      </air:compareZonesRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
