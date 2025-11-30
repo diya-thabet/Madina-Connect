@@ -1,0 +1,43 @@
+# --- STAGE 1: BUILDER ---
+# This stage installs all Python dependencies into a virtual environment.
+FROM python:3.11-slim AS builder
+
+# Set environment variables for non-interactive commands and virtual environment path
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV VIRTUAL_ENV /venv
+ENV PATH="/venv/bin:$PATH"
+
+# Create and activate the virtual environment
+RUN python -m venv $VIRTUAL_ENV
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install packages inside the venv
+# Note: requirements.txt is copied from the root context (./requirements.txt)
+COPY requirements.txt .
+# Use --no-cache-dir to save space, and install dependencies
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
+
+# --- STAGE 2: RUNTIME ---
+# This stage copies the compiled dependencies and application code from the builder.
+FROM python:3.11-slim
+
+# Copy the virtual environment and application files from the builder stage
+COPY --from=builder /venv /venv
+WORKDIR /app
+# FIX: The source path is corrected to be relative to the root build context.
+COPY mobility/mobility_service.py .
+
+# Set the PATH to include the virtual environment binaries
+ENV PATH="/venv/bin:$PATH"
+
+# Expose the port the application runs on
+EXPOSE 8000
+
+# Command to run the application using uvicorn
+# Note: The application is run directly from the virtual environment path
+CMD ["uvicorn", "mobility_service:app", "--host", "0.0.0.0", "--port", "8000"]
