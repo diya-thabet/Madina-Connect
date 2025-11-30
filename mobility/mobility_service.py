@@ -1,127 +1,320 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import List, Dict
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional
+from sqlalchemy import create_engine, Column, String, Integer, Boolean, ForeignKey
+from sqlalchemy.orm import sessionmaker, Session, declarative_base, relationship
+from contextlib import asynccontextmanager
+import os
 
-# --- 1. Pydantic Models for Data Structure and Validation ---
+# --- 1. Database Configuration (SQLite) ---
+DATABASE_URL = "sqlite:///./mobility.db"
 
-class Schedule(BaseModel):
-    """Represents a specific scheduled time."""
-    time: str = Field(..., example="08:15 AM")
-    destination: str = Field(..., example="Central Station")
-    platform: int = Field(..., example=3)
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-class Line(BaseModel):
-    """Represents a public transport line."""
-    line_id: str = Field(..., example="BUS-1A")
-    name: str = Field(..., example="Avenue Habib Bourguiba to Marsa Plage")
-    type: str = Field(..., example="Bus") # Bus, Metro, Train
+# --- 2. Database Entities (Tables) ---
 
-class TrafficUpdate(BaseModel):
-    """Represents a real-time traffic status update."""
-    location: str = Field(..., example="Bab Saadoun Intersection")
-    status: str = Field(..., example="Heavy Delay") # On Time, Minor Delay, Heavy Delay, Cancelled
-    details: str = Field(None, example="Road blockage due to maintenance.")
+class TransportLineDB(Base):
+    __tablename__ = "transport_lines"
+    line_id = Column(String, primary_key=True, index=True)
+    name = Column(String)
+    type = Column(String) # Bus, Metro, Train
+    is_active = Column(Boolean, default=True)
 
-class LineSchedule(BaseModel):
-    """Response model for a line's schedule."""
+class ScheduleDB(Base):
+    """
+    Requirement 1: Consultation des horaires (Schedules)
+    """
+    __tablename__ = "schedules"
+    id = Column(Integer, primary_key=True, index=True)
+    line_id = Column(String, ForeignKey("transport_lines.line_id"))
+    departure_time = Column(String) # e.g., "08:15"
+    direction = Column(String) # e.g., "Vers La Marsa"
+
+class TrafficDB(Base):
+    """
+    Requirement 2: Suivi de l'état du trafic (Traffic Status)
+    """
+    __tablename__ = "traffic_events"
+    id = Column(Integer, primary_key=True, index=True)
+    line_id = Column(String, ForeignKey("transport_lines.line_id"), nullable=True)
+    status = Column(String) # "Normal", "Delayed", "Cancelled"
+    message = Column(String) # e.g., "Retard de 10 min suite panne technique"
+    location = Column(String) # e.g., "Station Bardo"
+
+class HubDB(Base):
+    """
+    Requirement 3: Correspondances (Interconnections)
+    """
+    __tablename__ = "transport_hubs"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String) # e.g., "Place de Barcelone"
+    connections = Column(String) # e.g., "Metro 1, 2, 4, 5, 6 | Trains SNCFT"
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# --- 3. Pydantic Models ---
+
+# --- Lines ---
+class LineCreate(BaseModel):
     line_id: str
-    schedules: List[Schedule]
+    name: str
+    type: str
 
-# --- 2. FastAPI Application Setup ---
+class LineResponse(LineCreate):
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
 
+# --- Schedules ---
+class ScheduleCreate(BaseModel):
+    line_id: str
+    departure_time: str
+    direction: str
+
+class ScheduleResponse(ScheduleCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Traffic ---
+class TrafficCreate(BaseModel):
+    line_id: Optional[str] = None
+    status: str
+    message: str
+    location: str
+
+class TrafficResponse(TrafficCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Hubs ---
+class HubCreate(BaseModel):
+    name: str
+    connections: str
+
+class HubResponse(HubCreate):
+    id: int
+    model_config = ConfigDict(from_attributes=True)
+
+# --- 4. Application Startup (Data Injection) ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db = SessionLocal()
+    try:
+        # Force Clean & Re-Inject for Demo purposes to ensure data is always perfect
+        print("--- CLEANING DATABASE FOR DEMO ---")
+        db.query(ScheduleDB).delete()
+        db.query(TrafficDB).delete()
+        db.query(HubDB).delete()
+        db.query(TransportLineDB).delete()
+        db.commit()
+
+        print("--- INJECTING REAL TUNISIAN DATA ---")
+        
+        # 1. Lines
+        lines = [
+            TransportLineDB(line_id="TGM", name="Tunis Marine - La Marsa", type="Train"),
+            TransportLineDB(line_id="METRO-4", name="Place de Barcelone - Manouba", type="Metro"),
+            TransportLineDB(line_id="METRO-2", name="Place de la République - Ariana", type="Metro"),
+            TransportLineDB(line_id="BUS-20", name="Tunis - La Marsa", type="Bus"),
+            TransportLineDB(line_id="RFR-E", name="Tunis - Bou Gatfa", type="Train"),
+        ]
+        db.add_all(lines)
+        db.commit()
+
+        # 2. Schedules (Horaires) - FULLY CONNECTED DATA
+        schedules = [
+            # TGM Schedules (Tunis Marine -> La Marsa)
+            ScheduleDB(line_id="TGM", departure_time="07:00", direction="La Marsa"),
+            ScheduleDB(line_id="TGM", departure_time="07:20", direction="La Marsa"),
+            ScheduleDB(line_id="TGM", departure_time="07:40", direction="La Marsa"),
+            ScheduleDB(line_id="TGM", departure_time="08:00", direction="La Marsa"),
+            ScheduleDB(line_id="TGM", departure_time="08:20", direction="La Marsa"),
+            
+            # METRO-4 Schedules (Barcelone -> Manouba)
+            ScheduleDB(line_id="METRO-4", departure_time="07:05", direction="Manouba"),
+            ScheduleDB(line_id="METRO-4", departure_time="07:12", direction="Manouba"),
+            ScheduleDB(line_id="METRO-4", departure_time="07:20", direction="Manouba"),
+            ScheduleDB(line_id="METRO-4", departure_time="07:30", direction="Manouba"),
+
+            # METRO-2 Schedules (République -> Ariana)
+            ScheduleDB(line_id="METRO-2", departure_time="07:10", direction="Ariana"),
+            ScheduleDB(line_id="METRO-2", departure_time="07:18", direction="Ariana"),
+            ScheduleDB(line_id="METRO-2", departure_time="07:25", direction="Ariana"),
+            ScheduleDB(line_id="METRO-2", departure_time="07:35", direction="Ariana"),
+
+            # BUS-20 Schedules (Tunis -> La Marsa)
+            ScheduleDB(line_id="BUS-20", departure_time="07:15", direction="La Marsa"),
+            ScheduleDB(line_id="BUS-20", departure_time="07:45", direction="La Marsa"),
+            ScheduleDB(line_id="BUS-20", departure_time="08:15", direction="La Marsa"),
+
+            # RFR-E Schedules (Tunis -> Bou Gatfa)
+            ScheduleDB(line_id="RFR-E", departure_time="07:15", direction="Bou Gatfa"),
+            ScheduleDB(line_id="RFR-E", departure_time="07:30", direction="Bou Gatfa"),
+            ScheduleDB(line_id="RFR-E", departure_time="07:45", direction="Bou Gatfa"),
+        ]
+        db.add_all(schedules)
+        db.commit()
+
+        # 3. Traffic Events (État du trafic)
+        traffic = [
+            TrafficDB(line_id="METRO-4", status="Delayed", message="Retard de 15 min (Panne signalisation)", location="Bardo"),
+            TrafficDB(line_id="TGM", status="Normal", message="Trafic fluide", location="Ligne complète"),
+            TrafficDB(line_id="BUS-20", status="Heavy", message="Embouteillage fort", location="Route X"),
+        ]
+        db.add_all(traffic)
+        db.commit()
+
+        # 4. Hubs (Correspondances)
+        hubs = [
+            HubDB(name="Place de Barcelone", connections="Metro 1, 2, 4, 5, 6 <-> Trains SNCFT <-> Bus"),
+            HubDB(name="Tunis Marine", connections="TGM <-> Metro 1, 4 <-> Bus"),
+            HubDB(name="Jardin Thameur", connections="Metro 2 <-> Bus Lignes Nord"),
+        ]
+        db.add_all(hubs)
+        db.commit()
+        
+        print("--- DATA INJECTION COMPLETE ---")
+    finally:
+        db.close()
+    yield
+
+# --- 5. FastAPI App ---
 app = FastAPI(
     title="Madina-Connect Mobility Service",
-    description="Provides real-time transport schedules and traffic status via REST.",
-    version="1.0.0"
+    description="Service de Mobilité Intelligente (Tunis) - REST API",
+    version="3.1.0",
+    lifespan=lifespan
 )
 
-# --- 3. Mock Data (In a real app, this would be a database connection) ---
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-# Mock data for transport lines
-MOCK_LINES: Dict[str, Line] = {
-    "BUS-1A": Line(line_id="BUS-1A", name="Line A: Tunis Sud Express", type="Bus"),
-    "METRO-3": Line(line_id="METRO-3", name="Metro 3: Tunis Marine", type="Metro"),
-    "TRAIN-S5": Line(line_id="TRAIN-S5", name="Train S5: Sahel Express", type="Train"),
-}
+# --- 6. ENDPOINTS (Functional Requirements) ---
 
-# Mock data for schedules
-MOCK_SCHEDULES: Dict[str, List[Schedule]] = {
-    "BUS-1A": [
-        Schedule(time="07:00 AM", destination="Central Station", platform=1),
-        Schedule(time="07:30 AM", destination="Manar 2", platform=1),
-    ],
-    "METRO-3": [
-        Schedule(time="08:15 AM", destination="Khaznadar", platform=3),
-        Schedule(time="08:30 AM", destination="Bab Souika", platform=3),
-    ]
-}
-
-# Mock data for traffic updates
-MOCK_TRAFFIC: List[TrafficUpdate] = [
-    TrafficUpdate(
-        location="Lac 1 Bridge",
-        status="Minor Delay",
-        details="Unexpected volume, expect 5-10 min delay."
-    ),
-    TrafficUpdate(
-        location="Aéroport Tunis-Carthage (Bus stops)",
-        status="On Time",
-        details="All services running normally."
-    ),
-]
-
-
-# --- 4. Endpoints (Routes) Implementation ---
-
-@app.get("/api/mobility/lines", response_model=List[Line], tags=["Lines"])
-def get_all_lines():
+# --- Requirement 1: Consultation des horaires ---
+@app.get("/api/mobility/lines/{line_id}/schedule", response_model=List[ScheduleResponse], tags=["Horaires (Public)"])
+def get_line_schedule(line_id: str, db: Session = Depends(get_db)):
     """
-    Retrieves a list of all available public transport lines in the city.
+    Consulter les horaires pour une ligne donnée (Ex: TGM, METRO-4).
     """
-    return list(MOCK_LINES.values())
+    # Verify line exists first
+    line = db.query(TransportLineDB).filter(TransportLineDB.line_id == line_id).first()
+    if not line:
+        raise HTTPException(status_code=404, detail="Ligne introuvable")
+    
+    schedules = db.query(ScheduleDB).filter(ScheduleDB.line_id == line_id).all()
+    return schedules
 
-@app.get("/api/mobility/lines/{line_id}/schedule", response_model=LineSchedule, tags=["Lines"])
-def get_line_schedule(line_id: str):
+# --- Requirement 2: Suivi de l'état du trafic ---
+@app.get("/api/mobility/traffic", response_model=List[TrafficResponse], tags=["Trafic Info (Public)"])
+def get_traffic_status(db: Session = Depends(get_db)):
     """
-    Consults the upcoming schedule for a specific line ID.
+    Suivre l'état du trafic (retards, annulations, perturbations).
     """
-    if line_id not in MOCK_LINES:
-        raise HTTPException(status_code=404, detail=f"Line ID '{line_id}' not found.")
+    return db.query(TrafficDB).all()
 
-    schedules = MOCK_SCHEDULES.get(line_id, [])
-    if not schedules:
-        # Simulate a case where a line is found but has no current schedule
-        return LineSchedule(line_id=line_id, schedules=[])
-
-    return LineSchedule(line_id=line_id, schedules=schedules)
-
-@app.get("/api/mobility/traffic", response_model=List[TrafficUpdate], tags=["Traffic"])
-def get_traffic_status():
+# --- Requirement 3: Correspondances ---
+@app.get("/api/mobility/interconnect", response_model=List[HubResponse], tags=["Correspondances (Public)"])
+def get_interconnections(db: Session = Depends(get_db)):
     """
-    Provides real-time status of traffic and transport disruptions across the network.
+    Informations sur les correspondances (Hubs principaux).
     """
-    return MOCK_TRAFFIC
+    return db.query(HubDB).all()
 
-@app.get("/api/mobility/interconnect", response_model=List[str], tags=["Interoperability"])
-def get_interconnect_options():
-    """
-    Provides information on key transport hubs and available connections (e.g., Bus to Metro).
-    """
-    return [
-        "Jardin Thameur: Metro 2, 4, 5, Bus lines 10, 20.",
-        "Tunis Marine: Metro 3, 5, TGM train line.",
-        "Central Station: Train S5, Bus lines 1A, 1B, 20.",
-    ]
+# --- Admin / CRUD Endpoints ---
 
-# --- 5. Application Startup (for Docker) ---
+# --- CRUD Lines ---
+@app.get("/api/mobility/lines", response_model=List[LineResponse], tags=["Admin - Lines"])
+def get_lines(db: Session = Depends(get_db)):
+    return db.query(TransportLineDB).all()
 
-# Uvicorn is the ASGI server for running FastAPI
+@app.post("/api/mobility/lines", response_model=LineResponse, tags=["Admin - Lines"])
+def create_line(line: LineCreate, db: Session = Depends(get_db)):
+    existing = db.query(TransportLineDB).filter(TransportLineDB.line_id == line.line_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Line exists")
+    new_line = TransportLineDB(**line.dict())
+    db.add(new_line)
+    db.commit()
+    db.refresh(new_line)
+    return new_line
+
+@app.delete("/api/mobility/lines/{line_id}", tags=["Admin - Lines"])
+def delete_line(line_id: str, db: Session = Depends(get_db)):
+    line = db.query(TransportLineDB).filter(TransportLineDB.line_id == line_id).first()
+    if not line:
+        raise HTTPException(status_code=404, detail="Line not found")
+    db.delete(line)
+    db.commit()
+    return {"message": "Line deleted"}
+
+# --- CRUD Schedules ---
+@app.post("/api/mobility/schedules", response_model=ScheduleResponse, tags=["Admin - Schedules"])
+def create_schedule(schedule: ScheduleCreate, db: Session = Depends(get_db)):
+    # Validate line exists
+    line = db.query(TransportLineDB).filter(TransportLineDB.line_id == schedule.line_id).first()
+    if not line:
+        raise HTTPException(status_code=404, detail="Line not found")
+    
+    new_schedule = ScheduleDB(**schedule.dict())
+    db.add(new_schedule)
+    db.commit()
+    db.refresh(new_schedule)
+    return new_schedule
+
+@app.delete("/api/mobility/schedules/{schedule_id}", tags=["Admin - Schedules"])
+def delete_schedule(schedule_id: int, db: Session = Depends(get_db)):
+    schedule = db.query(ScheduleDB).filter(ScheduleDB.id == schedule_id).first()
+    if not schedule:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+    db.delete(schedule)
+    db.commit()
+    return {"message": "Schedule deleted"}
+
+# --- CRUD Traffic ---
+@app.post("/api/mobility/traffic", response_model=TrafficResponse, tags=["Admin - Traffic"])
+def create_traffic_alert(traffic: TrafficCreate, db: Session = Depends(get_db)):
+    new_traffic = TrafficDB(**traffic.dict())
+    db.add(new_traffic)
+    db.commit()
+    db.refresh(new_traffic)
+    return new_traffic
+
+@app.delete("/api/mobility/traffic/{traffic_id}", tags=["Admin - Traffic"])
+def delete_traffic_alert(traffic_id: int, db: Session = Depends(get_db)):
+    traffic = db.query(TrafficDB).filter(TrafficDB.id == traffic_id).first()
+    if not traffic:
+        raise HTTPException(status_code=404, detail="Traffic alert not found")
+    db.delete(traffic)
+    db.commit()
+    return {"message": "Traffic alert deleted"}
+
+# --- CRUD Hubs ---
+@app.post("/api/mobility/hubs", response_model=HubResponse, tags=["Admin - Hubs"])
+def create_hub(hub: HubCreate, db: Session = Depends(get_db)):
+    new_hub = HubDB(**hub.dict())
+    db.add(new_hub)
+    db.commit()
+    db.refresh(new_hub)
+    return new_hub
+
+@app.delete("/api/mobility/hubs/{hub_id}", tags=["Admin - Hubs"])
+def delete_hub(hub_id: int, db: Session = Depends(get_db)):
+    hub = db.query(HubDB).filter(HubDB.id == hub_id).first()
+    if not hub:
+        raise HTTPException(status_code=404, detail="Hub not found")
+    db.delete(hub)
+    db.commit()
+    return {"message": "Hub deleted"}
+
+
+# --- Main Entry Point ---
 if __name__ == "__main__":
     import uvicorn
-    # The default port 8000 is used for consistency in the project
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# IMPORTANT NOTE FOR OPENAPI:
-# After running the service, the OpenAPI (Swagger) documentation
-# required for your submission is automatically generated here:
-# http://127.0.0.1:8000/docs
