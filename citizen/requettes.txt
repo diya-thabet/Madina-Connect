@@ -1,0 +1,117 @@
+Get All Events
+
+query {
+  getAllEvents {
+    id
+    title
+    date
+    location
+    category
+    isFree
+  }
+}
+
+
+
+
+Get Event by ID
+query {
+  getEventById(id: "1") {
+    title
+    description
+    organizer
+  }
+}
+
+
+
+
+Filter Events by Category
+query {
+  getEventsByCategory(category: "Culture") {
+    title
+    date
+    location
+  }
+}
+
+*************************************************
+*************************************************
+*************************************************
+
+
+Get All Reports
+query {
+  getAllReports {
+    id
+    description
+    category
+    status
+    reporterName
+  }
+}
+
+
+
+Get Report by ID
+query {
+  getReportById(id: "1") {
+    description
+    location
+    timestamp
+    status
+  }
+}
+
+
+
+Filter Reports by Status
+query {
+  getReportsByStatus(status: "PENDING") {
+    id
+    description
+    location
+  }
+}
+
+
+*************************************************
+*************************************************
+*************************************************
+
+
+Create a New Report
+mutation {
+  createReport(
+    description: "Huge pothole on main road",
+    location: "Avenue Bourguiba",
+    category: "Infrastructure",
+    reporterName: "Sami Tounsi"
+  ) {
+    id
+    status
+    timestamp
+  }
+}
+
+
+
+
+4. Admin/Operator Actions (Mutations)
+Update Report Status
+
+mutation {
+  updateReportStatus(id: "1", status: "RESOLVED") {
+    id
+    status
+    description
+  }
+}
+
+
+
+Delete a Report
+mutation {
+  deleteReport(id: "1")
+}
+

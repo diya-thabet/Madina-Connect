@@ -1,0 +1,41 @@
+type Query {
+    # Events
+    getAllEvents: [Event]
+    getEventById(id: ID!): Event
+    getEventsByCategory(category: String!): [Event]
+
+    # Reports
+    getAllReports: [Report]
+    getReportById(id: ID!): Report
+    getReportsByStatus(status: String!): [Report]
+}
+
+type Mutation {
+    # Citizen Actions
+    createReport(description: String!, location: String!, category: String!, reporterName: String!): Report
+
+    # Operator Actions (Admin)
+    updateReportStatus(id: ID!, status: String!): Report
+    deleteReport(id: ID!): Boolean
+}
+
+type Event {
+    id: ID!
+    title: String!
+    description: String
+    date: String!
+    location: String!
+    category: String!
+    organizer: String
+    isFree: Boolean
+}
+
+type Report {
+    id: ID!
+    description: String!
+    location: String!
+    category: String! # e.g. "Roads", "Lighting", "Trash"
+    reporterName: String!
+    status: String! # "PENDING", "IN_PROGRESS", "RESOLVED"
+    timestamp: String!
+}
