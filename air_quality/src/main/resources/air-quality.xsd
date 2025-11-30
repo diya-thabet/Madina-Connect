@@ -1,0 +1,28 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://madina.com/soap/airquality"
+           targetNamespace="http://madina.com/soap/airquality" elementFormDefault="qualified">
+
+    <!-- The Request: Ask for a Zone -->
+    <xs:element name="getAirQualityRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="zone" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- The Response: Detailed Analysis -->
+    <xs:element name="getAirQualityResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="aqi" type="xs:int"/>
+                <xs:element name="status" type="xs:string"/>
+                <!-- Detailed Pollutants as requested -->
+                <xs:element name="pm10" type="xs:double"/>
+                <xs:element name="pm25" type="xs:double"/>
+                <xs:element name="no2" type="xs:double"/> <!-- Nitrogen Dioxide -->
+                <xs:element name="co2" type="xs:double"/> <!-- Carbon Dioxide -->
+                <xs:element name="o3" type="xs:double"/>  <!-- Ozone -->
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
