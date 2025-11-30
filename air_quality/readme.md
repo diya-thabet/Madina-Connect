@@ -43,3 +43,57 @@ docker build -t madina-soap .
 # 2. Start the Service
 # Maps container port 8080 -> Host port 8081
 docker run -d -p 8081:8080 --name soap-app madina-soap
+
+
+
+
+## soap payload
+
+<soapenv:Envelope xmlns:soapenv="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)"
+                  xmlns:air="[http://madina.com/soap/airquality](http://madina.com/soap/airquality)">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <air:getAirQualityRequest>
+         <air:zone>industrial</air:zone>
+      </air:getAirQualityRequest>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+
+## expected response
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)">
+   <SOAP-ENV:Header/>
+   <SOAP-ENV:Body>
+      <ns2:getAirQualityResponse xmlns:ns2="[http://madina.com/soap/airquality](http://madina.com/soap/airquality)">
+         <ns2:aqi>158</ns2:aqi>
+         <ns2:status>Unhealthy</ns2:status>
+         <ns2:pm10>85.0</ns2:pm10>
+         <ns2:pm25>60.2</ns2:pm25>
+         <ns2:no2>120.5</ns2:no2>
+         <ns2:co2>450.0</ns2:co2>
+         <ns2:o3>40.1</ns2:o3>
+      </ns2:getAirQualityResponse>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+
+
+##Project Structure
+├── src/
+│   ├── main/
+│   │   ├── java/       # Spring Boot Application & Endpoint Logic
+│   │   └── resources/
+│   │       └── air-quality.xsd  # The Source of Truth (Contract)
+├── Dockerfile          # Multi-stage Distroless build
+├── pom.xml             # Maven dependencies & XSD-to-Java plugin
+└── README.md           # Documentation
+
+
+
+
+
+
+
+
+
+
