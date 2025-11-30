@@ -46,7 +46,7 @@ docker run -d -p 8081:8080 --name soap-app madina-soap
 ```
 
 ## soap payload
-
+```bash
 <soapenv:Envelope xmlns:soapenv="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)"
                   xmlns:air="[http://madina.com/soap/airquality](http://madina.com/soap/airquality)">
    <soapenv:Header/>
@@ -56,9 +56,10 @@ docker run -d -p 8081:8080 --name soap-app madina-soap
       </air:getAirQualityRequest>
    </soapenv:Body>
 </soapenv:Envelope>
-
+```
 
 ## expected response
+```bash
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="[http://schemas.xmlsoap.org/soap/envelope/](http://schemas.xmlsoap.org/soap/envelope/)">
    <SOAP-ENV:Header/>
    <SOAP-ENV:Body>
@@ -73,10 +74,11 @@ docker run -d -p 8081:8080 --name soap-app madina-soap
       </ns2:getAirQualityResponse>
    </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
+```
 
 
-
-##Project Structure
+## Project Structure
+```bash
 ├── src/
 │   ├── main/
 │   │   ├── java/       # Spring Boot Application & Endpoint Logic
@@ -85,7 +87,7 @@ docker run -d -p 8081:8080 --name soap-app madina-soap
 ├── Dockerfile          # Multi-stage Distroless build
 ├── pom.xml             # Maven dependencies & XSD-to-Java plugin
 └── README.md           # Documentation
-
+```
 
 ## docs link
 ```bash
