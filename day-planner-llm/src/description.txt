@@ -1,0 +1,42 @@
+GEMINI_API_KEY=YOUR_KEY_HERE
+
+# Use host.docker.internal to reach services running on your machine
+MOBILITY_SERVICE_URL=http://host.docker.internal:8000
+AIR_QUALITY_WSDL_URL=http://host.docker.internal:8081/ws/airQuality.wsdl
+EVENTS_SERVICE_URL=http://host.docker.internal:8082/graphql
+
+#### Step 2: Build the Image
+Run this in your terminal inside `day-planner-llm`:
+
+```bash
+docker build -t madina-planner-llm .
+
+#### Step 3: Run the Container
+The command depends on your Operating System because Linux handles `host.docker.internal` differently.
+
+**👉 For Windows / Mac:**
+```bash
+docker run -d \
+  -p 8001:8001 \
+  --name planner-service \
+  --env-file .env \
+  madina-planner-llm
+
+**👉 For Linux (Ubuntu/Fedora):**
+Linux docker doesn't support `host.docker.internal` by default. You must add the host gateway flag:
+```bash
+docker run -d \
+  -p 8001:8001 \
+  --add-host=host.docker.internal:host-gateway \
+  --name planner-service \
+  --env-file .env \
+  madina-planner-llm
+
+### 🔍 How to Verify
+1.  **Check Logs:**
+    ```bash
+    docker logs -f planner-service
+        You should see: `Uvicorn running on http://0.0.0.0:8001`.
+
+2.  **Test:**
+    Go to your React App (Frontend). Since the frontend calls `/api/plan-day` -> `localhost:8001` (and `localhost:8001` is now mapped to your Docker container), it should work exactly as before!
