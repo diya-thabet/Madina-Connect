@@ -1,0 +1,33 @@
+--- 1. FULL RESET (Delete & Restart) ---
+
+Run this to delete all old pods/services and start fresh.
+
+kubectl delete -f madina-complete.yaml
+kubectl apply -f madina-complete.yaml
+
+--- 2. CHECK STATUS ---
+
+Watch the pods until they are all "Running" and "1/1"
+
+kubectl get pods -w
+
+--- 3. EXPOSE PORTS (Required for Kind/Linux) ---
+
+Once pods are running, run these to access them on localhost.
+
+The '&' runs them in the background so you can keep using the terminal.
+
+
+        kubectl port-forward svc/frontend-service 3000:3000 &
+
+
+        kubectl port-forward svc/mobility-service 8000:8000 &
+
+
+        kubectl port-forward svc/planner-service 8001:8001 &
+
+
+        kubectl port-forward svc/air-quality-service 8081:8081 &
+
+
+        kubectl port-forward svc/events-service 8082:8082 &
