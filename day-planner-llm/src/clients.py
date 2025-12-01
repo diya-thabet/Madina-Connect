@@ -69,7 +69,7 @@ async def fetch_events_data():
 def fetch_air_quality_data_sync():
     """
     Consumes Service 2 (SOAP) - Air Quality
-    Target: getAirQuality(zone="Tunis")
+    Target: getAirQuality(zone="Tunis-Centre")
     """
     try:
         # 1. Setup Client
@@ -77,24 +77,25 @@ def fetch_air_quality_data_sync():
         client = Client(AIR_WSDL, settings=settings)
 
         # 2. Call SOAP Method
-        # The WSDL expects 'zone' string.
-        response = client.service.getAirQuality(zone="Tunis")
+        # FIX: Changed zone from "Tunis" to "Tunis-Centre" based on valid XML payload
+        response = client.service.getAirQuality(zone="Tunis-Centre")
         
-        # 3. DEBUG & FIX: Serialize to Python Dictionary
-        # This converts the complex Zeep object into a standard Dict
-        # making it much easier to find the data.
+        # 3. Serialize to Python Dictionary
         data_dict = serialize_object(response)
         
-        print(f"DEBUG SOAP RESPONSE: {data_dict}") # Check your terminal to see the structure!
+        print(f"DEBUG SOAP RESPONSE: {data_dict}") 
 
-        # 4. Extract Data safely (Handling potential nesting)
-        # Sometimes the data is inside a 'data' key, sometimes it's at the root.
+        # 4. Extract Data safely
+        # Your XML shows the data is wrapped in a <ns2:data> tag.
+        # <ns2:getAirQualityResponse>
+        #    <ns2:data>
+        #       <ns2:aqi>85</ns2:aqi> ...
         actual_data = data_dict
         if 'data' in data_dict and isinstance(data_dict['data'], dict):
             actual_data = data_dict['data']
 
         return {
-            "location": actual_data.get('zone', 'Tunis'),
+            "location": actual_data.get('zone', 'Tunis-Centre'),
             "aqi": actual_data.get('aqi', 0),
             "status": actual_data.get('status', 'Unknown'),
             "pollutants": {
