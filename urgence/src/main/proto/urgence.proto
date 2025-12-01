@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_package = "com.madinaconnect.urgence.grpc";
+option java_multiple_files = true;
+
+service UrgenceService {
+  // Create a new alert
+  rpc CreateAlert (AlertRequest) returns (AlertResponse);
+
+  // Get details of a specific alert by ID
+  rpc GetAlert (GetAlertRequest) returns (AlertResponse);
+
+  // Stream all alerts, optionally filtered by type (Server Streaming)
+  rpc ListAlerts (ListAlertsRequest) returns (stream AlertResponse);
+
+  // Update the status of an alert (e.g., from PENDING to RESOLVED)
+  rpc UpdateAlertStatus (UpdateStatusRequest) returns (AlertResponse);
+}
+
+message AlertRequest {
+  string type = 1;      // ACCIDENT, FIRE, MEDICAL
+  double latitude = 2;
+  double longitude = 3;
+  string description = 4;
+}
+
+message GetAlertRequest {
+  string alert_id = 1;
+}
+
+message ListAlertsRequest {
+  string type_filter = 1; // Optional: If empty, return all
+}
+
+message UpdateStatusRequest {
+  string alert_id = 1;
+  string new_status = 2; // PENDING, IN_PROGRESS, RESOLVED
+}
+
+message AlertResponse {
+  string alert_id = 1;
+  string type = 2;
+  double latitude = 3;
+  double longitude = 4;
+  string description = 5;
+  string status = 6;
+  string received_timestamp = 7;
+}
