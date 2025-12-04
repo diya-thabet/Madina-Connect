@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8dba5f4c-7f3c-416a-8230-489349a739cb" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/8001" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s/MyCommands.txt" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/MyCommands.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/k8s/madina-stack.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/k8s/madina-stack.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +48,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/dhia/Documents/Developper/Madina-Connect/urgence",
+    "last_opened_file_path": "/home/dhia/Documents/Developper/Madina-Connect",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -82,6 +80,7 @@
       <workItem from="1764515092496" duration="1794000" />
       <workItem from="1764626783668" duration="161000" />
       <workItem from="1764842345511" duration="27000" />
+      <workItem from="1764875521225" duration="1056000" />
     </task>
     <servers />
   </component>

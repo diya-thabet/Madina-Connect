@@ -1,0 +1,4 @@
+sudo kubectl port-forward service/frontend-service 30005:3000
+
+
+sudo   kubectl port-forward service/urgence-frontend 30006:3000
