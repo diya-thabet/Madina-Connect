@@ -2,3 +2,17 @@ sudo kubectl port-forward service/frontend-service 30005:3000
 
 
 sudo   kubectl port-forward service/urgence-frontend 30006:3000
+
+
+
+
+
+
+kubectl port-forward svc/air-quality-service 8081:8081 &
+kubectl port-forward svc/events-service 8082:8082 &
+kubectl port-forward svc/frontend-service 3000:3000 &
+kubectl port-forward svc/mobility-service 8000:8000 &
+kubectl port-forward svc/planner-service 8001:8001 &
+kubectl port-forward svc/urgence-frontend 3006:3000 &
+kubectl port-forward svc/urgence-service 30570:9090 &
+kubectl port-forward svc/urgence-service 30090:8081 &

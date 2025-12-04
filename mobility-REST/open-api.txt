@@ -1,0 +1,728 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Madina-Connect Mobility Service",
+    "description": "Service de Mobilité Intelligente (Tunis) - REST API",
+    "version": "3.1.0"
+  },
+  "paths": {
+    "/api/mobility/lines/{line_id}/schedule": {
+      "get": {
+        "tags": [
+          "Horaires (Public)"
+        ],
+        "summary": "Get Line Schedule",
+        "description": "Consulter les horaires pour une ligne donnée (Ex: TGM, METRO-4).",
+        "operationId": "get_line_schedule_api_mobility_lines__line_id__schedule_get",
+        "parameters": [
+          {
+            "name": "line_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Line Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ScheduleResponse"
+                  },
+                  "title": "Response Get Line Schedule Api Mobility Lines  Line Id  Schedule Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/traffic": {
+      "get": {
+        "tags": [
+          "Trafic Info (Public)"
+        ],
+        "summary": "Get Traffic Status",
+        "description": "Suivre l'état du trafic (retards, annulations, perturbations).",
+        "operationId": "get_traffic_status_api_mobility_traffic_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TrafficResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Traffic Status Api Mobility Traffic Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin - Traffic"
+        ],
+        "summary": "Create Traffic Alert",
+        "operationId": "create_traffic_alert_api_mobility_traffic_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrafficCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrafficResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/interconnect": {
+      "get": {
+        "tags": [
+          "Correspondances (Public)"
+        ],
+        "summary": "Get Interconnections",
+        "description": "Informations sur les correspondances (Hubs principaux).",
+        "operationId": "get_interconnections_api_mobility_interconnect_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/HubResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Interconnections Api Mobility Interconnect Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/lines": {
+      "get": {
+        "tags": [
+          "Admin - Lines"
+        ],
+        "summary": "Get Lines",
+        "operationId": "get_lines_api_mobility_lines_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LineResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get Lines Api Mobility Lines Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin - Lines"
+        ],
+        "summary": "Create Line",
+        "operationId": "create_line_api_mobility_lines_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LineCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LineResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/lines/{line_id}": {
+      "delete": {
+        "tags": [
+          "Admin - Lines"
+        ],
+        "summary": "Delete Line",
+        "operationId": "delete_line_api_mobility_lines__line_id__delete",
+        "parameters": [
+          {
+            "name": "line_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Line Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/schedules": {
+      "post": {
+        "tags": [
+          "Admin - Schedules"
+        ],
+        "summary": "Create Schedule",
+        "operationId": "create_schedule_api_mobility_schedules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/schedules/{schedule_id}": {
+      "delete": {
+        "tags": [
+          "Admin - Schedules"
+        ],
+        "summary": "Delete Schedule",
+        "operationId": "delete_schedule_api_mobility_schedules__schedule_id__delete",
+        "parameters": [
+          {
+            "name": "schedule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Schedule Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/traffic/{traffic_id}": {
+      "delete": {
+        "tags": [
+          "Admin - Traffic"
+        ],
+        "summary": "Delete Traffic Alert",
+        "operationId": "delete_traffic_alert_api_mobility_traffic__traffic_id__delete",
+        "parameters": [
+          {
+            "name": "traffic_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Traffic Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/hubs": {
+      "post": {
+        "tags": [
+          "Admin - Hubs"
+        ],
+        "summary": "Create Hub",
+        "operationId": "create_hub_api_mobility_hubs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HubCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HubResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/mobility/hubs/{hub_id}": {
+      "delete": {
+        "tags": [
+          "Admin - Hubs"
+        ],
+        "summary": "Delete Hub",
+        "operationId": "delete_hub_api_mobility_hubs__hub_id__delete",
+        "parameters": [
+          {
+            "name": "hub_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Hub Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HubCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "connections": {
+            "type": "string",
+            "title": "Connections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "connections"
+        ],
+        "title": "HubCreate"
+      },
+      "HubResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "connections": {
+            "type": "string",
+            "title": "Connections"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "connections",
+          "id"
+        ],
+        "title": "HubResponse"
+      },
+      "LineCreate": {
+        "properties": {
+          "line_id": {
+            "type": "string",
+            "title": "Line Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line_id",
+          "name",
+          "type"
+        ],
+        "title": "LineCreate"
+      },
+      "LineResponse": {
+        "properties": {
+          "line_id": {
+            "type": "string",
+            "title": "Line Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line_id",
+          "name",
+          "type",
+          "is_active"
+        ],
+        "title": "LineResponse"
+      },
+      "ScheduleCreate": {
+        "properties": {
+          "line_id": {
+            "type": "string",
+            "title": "Line Id"
+          },
+          "departure_time": {
+            "type": "string",
+            "title": "Departure Time"
+          },
+          "direction": {
+            "type": "string",
+            "title": "Direction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line_id",
+          "departure_time",
+          "direction"
+        ],
+        "title": "ScheduleCreate"
+      },
+      "ScheduleResponse": {
+        "properties": {
+          "line_id": {
+            "type": "string",
+            "title": "Line Id"
+          },
+          "departure_time": {
+            "type": "string",
+            "title": "Departure Time"
+          },
+          "direction": {
+            "type": "string",
+            "title": "Direction"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "line_id",
+          "departure_time",
+          "direction",
+          "id"
+        ],
+        "title": "ScheduleResponse"
+      },
+      "TrafficCreate": {
+        "properties": {
+          "line_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "location"
+        ],
+        "title": "TrafficCreate"
+      },
+      "TrafficResponse": {
+        "properties": {
+          "line_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "location",
+          "id"
+        ],
+        "title": "TrafficResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

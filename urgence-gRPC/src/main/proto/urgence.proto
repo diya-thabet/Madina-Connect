@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option java_package = "com.madinaconnect.urgence.grpc";
+option java_multiple_files = true;
+
+service UrgenceService {
+  // 1. UNARY: One Request -> One Response
+  rpc CreateAlert (AlertRequest) returns (AlertResponse);
+  rpc GetAlert (GetAlertRequest) returns (AlertResponse);
+  rpc UpdateAlertStatus (UpdateStatusRequest) returns (AlertResponse);
+
+  // 2. SERVER STREAMING: One Request -> Many Responses
+  // (Admin asks for all alerts, server sends them one by one)
+  rpc ListAlerts (ListAlertsRequest) returns (stream AlertResponse);
+
+  // 3. CLIENT STREAMING: Many Requests -> One Response
+  // (Police car uploads a batch of 10 accidents at once, server says "10 received")
+  rpc BatchCreateAlerts (stream AlertRequest) returns (BatchSummary);
+
+  // 4. BIDIRECTIONAL STREAMING: Many Requests <-> Many Responses
+  // (Live Chat between Citizen and Operator)
+  rpc LiveChat (stream ChatMessage) returns (stream ChatMessage);
+}
+
+// --- MESSAGES ---
+
+message AlertRequest {
+  string type = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string description = 4;
+  string sender_cin = 5;
+}
+
+message GetAlertRequest {
+  string alert_id = 1;
+}
+
+message ListAlertsRequest {
+  string type_filter = 1;
+}
+
+message UpdateStatusRequest {
+  string alert_id = 1;
+  string new_status = 2;
+}
+
+message AlertResponse {
+  string alert_id = 1;
+  string type = 2;
+  double latitude = 3;
+  double longitude = 4;
+  string description = 5;
+  string status = 6;
+  string received_timestamp = 7;
+  string sender_cin = 8;
+}
+
+// New Message for Client Streaming Response
+message BatchSummary {
+  int32 alert_count = 1; // How many alerts were saved
+  string status_message = 2; // "Success"
+}
+
+// New Message for Chat (Bidirectional)
+message ChatMessage {
+  string sender_cin = 1;
+  string message = 2;
+  string timestamp = 3;
+}
