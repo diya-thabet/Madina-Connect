@@ -17,7 +17,11 @@ public class AlertEntity {
     private String id;
 
     @Column(nullable = false)
-    private String type; // ACCIDENT, FIRE, etc.
+    private String type;
+
+    // NEW FIELD: CIN (8 chars max)
+    @Column(length = 8)
+    private String senderCin;
 
     private double latitude;
     private double longitude;

@@ -4,7 +4,7 @@ metadata:
   name: madina-secrets
 type: Opaque
 stringData:
-  # 🔒 REPLACE THIS WITH YOUR REAL KEY
+  # 🔒 YOUR REAL GEMINI KEY (From previous chat)
   GEMINI_API_KEY: ""
 
 ---
@@ -14,14 +14,106 @@ metadata:
   name: madina-config
 data:
   # 🌐 Internal Service Discovery URLs
-  # In K8s, services talk to each other via their Service Name
-  # NOTE: Internal communication still uses the standard ports (8000, 8081, etc.)
   MOBILITY_SERVICE_URL: "http://mobility-service:8000"
   AIR_QUALITY_WSDL_URL: "http://air-quality-service:8081/ws/airQuality.wsdl"
   EVENTS_SERVICE_URL: "http://events-service:8082/graphql"
 
+# ==========================================
+# 🚑 NEW SERVICE: URGENCE BACKEND
+# ==========================================
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urgence-service
+spec:
+  type: NodePort
+  selector:
+    app: urgence
+  ports:
+    - name: grpc
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+    - name: rest
+      protocol: TCP
+      port: 8081       # Internal Service Port (Nginx talks to this)
+      targetPort: 9091 # 👈 FIXED: Tomcat is listening on 9091
+      nodePort: 30090  # 👈 FIXED: Moved to 30090 to avoid conflict with Air Quality (30081)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urgence-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urgence
+  template:
+    metadata:
+      labels:
+        app: urgence
+    spec:
+      containers:
+        - name: urgence
+          image: dhia2001/urgence:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9090
+            - containerPort: 9091
+          env:
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: madina-secrets
+                  key: GEMINI_API_KEY
+
+# ==========================================
+# 🚑 NEW SERVICE: URGENCE FRONTEND (Small)
+# ==========================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: urgence-frontend
+spec:
+  type: NodePort
+  selector:
+    app: urgence-frontend
+  ports:
+    - protocol: TCP
+      port: 3000        # Internal Cluster Port
+      targetPort: 3000  # Container Port (Nginx)
+      nodePort: 30006   # 🌍 Access: http://localhost:30006
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urgence-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urgence-frontend
+  template:
+    metadata:
+      labels:
+        app: urgence-frontend
+    spec:
+      containers:
+        - name: urgence-frontend
+          image: dhia2001/madina-frontend-grpc:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+
+# ==========================================
+# 🏙️ EXISTING SERVICES (Your Original Stack)
+# ==========================================
+
 # 🚌 Service 1: Mobility (REST)
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -32,9 +124,9 @@ spec:
     app: mobility
   ports:
     - protocol: TCP
-      port: 8000        # Internal port (inside cluster)
-      targetPort: 8000  # Container port
-      nodePort: 30000   # External access port (http://localhost:30000)
+      port: 8000
+      targetPort: 8000
+      nodePort: 30000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -57,8 +149,8 @@ spec:
           ports:
             - containerPort: 8000
 
----
 # ☁️ Service 2: Air Quality (SOAP)
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -70,8 +162,8 @@ spec:
   ports:
     - protocol: TCP
       port: 8081
-      targetPort: 8080  # FIX: Spring Boot usually listens on 8080 inside
-      nodePort: 30081   # External access port (http://localhost:30081)
+      targetPort: 8080
+      nodePort: 30081   # ⚠️ Kept this. That's why Urgence is now on 30090.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -92,16 +184,15 @@ spec:
           image: dhia2001/soc:madina-soap
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080 # FIX: Reflected internal port change
-          # FIX: Readiness Probe ensures we don't connect before Java is ready
+            - containerPort: 8080
           readinessProbe:
             tcpSocket:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
 
----
 # 🎉 Service 3: Events/Citizen (GraphQL)
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -114,7 +205,7 @@ spec:
     - protocol: TCP
       port: 8082
       targetPort: 8082
-      nodePort: 30082   # External access port (http://localhost:30082)
+      nodePort: 30082
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -137,8 +228,8 @@ spec:
           ports:
             - containerPort: 8082
 
----
 # 🧠 Service 4: LLM Planner (Orchestrator)
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -151,7 +242,7 @@ spec:
     - protocol: TCP
       port: 8001
       targetPort: 8001
-      nodePort: 30001   # External access port (http://localhost:30001)
+      nodePort: 30001
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -179,9 +270,8 @@ spec:
             - secretRef:
                 name: madina-secrets
 
+# 💻 Service 5: Main Frontend (The Big React App)
 ---
-# 💻 Service 5: Frontend (React)
-# THIS IS THE NEW PART
 apiVersion: v1
 kind: Service
 metadata:
@@ -192,9 +282,9 @@ spec:
     app: frontend
   ports:
     - protocol: TCP
-      port: 3000        # Internal port
-      targetPort: 3000  # Container port (from server.js)
-      nodePort: 30005   # External access URL: http://localhost:30005
+      port: 3000
+      targetPort: 3000
+      nodePort: 30005
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -217,6 +307,5 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            # This tells server.js where to send /api requests
             - name: API_URL
               value: "http://planner-service:8001"

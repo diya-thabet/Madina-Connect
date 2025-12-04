@@ -1,0 +1,9 @@
+#!/bin/bash
+echo "🔌 Starting Persistent Tunnel to Urgence Frontend..."
+
+# Infinite loop to restart if it crashes
+while true; do
+  kubectl port-forward service/urgence-frontend 30006:3000
+  echo "⚠️ Tunnel dropped! Restarting in 2 seconds..."
+  sleep 2
+done

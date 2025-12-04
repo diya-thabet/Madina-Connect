@@ -1,37 +1,31 @@
-# ----------------------------------------------------------------------
-# Stage 1: Build Stage (Maven + JDK)
-# We use a full JDK image to compile the Java code and generate Protobufs.
-# ----------------------------------------------------------------------
-FROM maven:3.9.5-eclipse-temurin-17 AS build
-
+# Stage 1: Build the JAR
+# FIX: Changed from 'alpine' to 'jammy' (Ubuntu/Debian based).
+# This provides the 'glibc' library required to run the gRPC generator (protoc).
+FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 
-# Copy the pom.xml first to leverage Docker layer caching for dependencies
+COPY .mvn .mvn
+COPY mvnw .
 COPY pom.xml .
 
-# Download dependencies (this layer will be cached unless pom.xml changes)
-RUN mvn dependency:go-offline -B
+# Ensure the wrapper is executable
+RUN chmod +x mvnw
 
-# Copy the source code (including .proto files)
-COPY src ./src
+# Download dependencies
+RUN ./mvnw dependency:go-offline -B
 
-# Build the application (skipping tests for speed in this context)
-RUN mvn clean package -DskipTests
+COPY src src
 
-# ----------------------------------------------------------------------
-# Stage 2: Runtime Stage (Distroless)
-# We use Google's Distroless image for Java 17.
-# It contains only the JVM and standard libraries. No shell, no package manager.
-# ----------------------------------------------------------------------
-FROM gcr.io/distroless/java17-debian12
+# Build the application
+RUN ./mvnw clean package -DskipTests
 
-WORKDIR /app
+# Stage 2: Distroless Runtime (Minimal & Secure)
+# We keep this part exactly the same!
+FROM gcr.io/distroless/java21-debian12
 
-# Copy the compiled JAR from the build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar /app/app.jar
 
-# Expose the gRPC port
-EXPOSE 9090
+# Expose ports
+EXPOSE 9090 8081
 
-# Distroless images don't have a shell, so we execute java directly.
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

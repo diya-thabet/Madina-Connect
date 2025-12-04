@@ -2,8 +2,8 @@
 
 Run this to delete all old pods/services and start fresh.
 
-kubectl delete -f madina-complete.yaml
-kubectl apply -f madina-complete.yaml
+kubectl delete -f madina-stack.yaml 
+kubectl apply -f madina-stack.yaml 
 
 --- 2. CHECK STATUS ---
 
