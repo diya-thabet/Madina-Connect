@@ -4,7 +4,7 @@ metadata:
   name: madina-secrets
 type: Opaque
 stringData:
-  GEMINI_API_KEY: "AIzaSyDYG354Y-DKwsf8SNGhReB55_BLh1ySqO0"
+  GEMINI_API_KEY: "AIzaSyDYG354Y"
 
 ---
 apiVersion: v1

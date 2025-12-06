@@ -26,8 +26,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- API CONFIGURATION ---
-const GATEWAY_URL = 'http://localhost:8080';
-const PLANNER_URL = '/planner-api'; // Uses Vite Proxy
+// FIX: We now generate absolute URLs dynamically using window.location.origin
+// This resolves the "Failed to parse URL" errors in tunnel environments.
+const getBaseUrl = () => window.location.origin;
+const GATEWAY_BASE = '/api'; 
+const PLANNER_BASE = '/planner-api'; 
 
 // --- UTILITY COMPONENTS ---
 
@@ -144,7 +147,9 @@ const MobilityView = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${GATEWAY_URL}/api/mobility/lines/${lineId}/schedule`);
+      // FIX: Use absolute URL
+      const url = `${getBaseUrl()}${GATEWAY_BASE}/mobility/lines/${lineId}/schedule`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error('Schedule unavailable');
       const data = await res.json();
       setSchedule(data);
@@ -262,7 +267,9 @@ const AirQualityView = () => {
   const checkAir = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${GATEWAY_URL}/api/air-quality/${zone}`);
+      // FIX: Use absolute URL
+      const url = `${getBaseUrl()}${GATEWAY_BASE}/air-quality/${zone}`;
+      const res = await fetch(url);
       const result = await res.json();
       setData(result);
     } catch (err) {
@@ -341,7 +348,9 @@ const EventsView = () => {
   const [selectedEvent, setSelectedEvent] = useState(null); // State for Modal
   
   useEffect(() => {
-    fetch(`${GATEWAY_URL}/api/events/query`, {
+    // FIX: Use absolute URL
+    const url = `${getBaseUrl()}${GATEWAY_BASE}/events/query`;
+    fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: "query { getAllEvents { id title description category location date } }" })
@@ -463,7 +472,9 @@ const ReportsView = () => {
   const [loading, setLoading] = useState(false);
 
   const fetchReports = () => {
-    fetch(`${GATEWAY_URL}/api/events/query`, {
+    // FIX: Use absolute URL
+    const url = `${getBaseUrl()}${GATEWAY_BASE}/events/query`;
+    fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query: `query { getAllReports { id description location category status timestamp } }` })
@@ -484,7 +495,9 @@ const ReportsView = () => {
       ) { id }
     }`;
     try {
-      await fetch(`${GATEWAY_URL}/api/events/query`, {
+      // FIX: Use absolute URL
+      const url = `${getBaseUrl()}${GATEWAY_BASE}/events/query`;
+      await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: mutation })
@@ -565,7 +578,9 @@ const UrgenceView = () => {
   const sendAlert = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${GATEWAY_URL}/api/urgence/alert`, {
+      // FIX: Use absolute URL
+      const url = `${getBaseUrl()}${GATEWAY_BASE}/urgence/alert`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, latitude: 36.8065, longitude: 10.1815 })
@@ -644,7 +659,9 @@ const PlannerView = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(`${PLANNER_URL}/plan-day`, {
+      // FIX: Use absolute URL
+      const url = `${getBaseUrl()}${PLANNER_BASE}/plan-day`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_preferences: userText })
