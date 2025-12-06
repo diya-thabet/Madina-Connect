@@ -5,7 +5,7 @@ metadata:
 type: Opaque
 stringData:
   # 🔒 YOUR REAL GEMINI KEY (From previous chat)
-  GEMINI_API_KEY: "AIzaSyDYG354Y-DKwsf8SNGhReB55_BLh1ySqO0"
+  GEMINI_API_KEY: ""
 
 ---
 apiVersion: v1

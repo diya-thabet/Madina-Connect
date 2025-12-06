@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+// Service Definition
+service UrgenceService {
+  rpc CreateAlert (AlertRequest) returns (AlertResponse);
+  rpc ListAlerts (ListAlertsRequest) returns (stream AlertResponse);
+}
+
+// Data Models
+message AlertRequest {
+  string type = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string description = 4;
+  string sender_cin = 5;
+}
+
+message AlertResponse {
+  string alert_id = 1;
+  string type = 2;
+  double latitude = 3;
+  double longitude = 4;
+  string description = 5;
+  string status = 6;
+  string received_timestamp = 7;
+  string sender_cin = 8;
+}
+
+message ListAlertsRequest {
+  string type_filter = 1;
+}

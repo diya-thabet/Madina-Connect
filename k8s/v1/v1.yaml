@@ -4,7 +4,6 @@ metadata:
   name: madina-secrets
 type: Opaque
 stringData:
-  # 🔒 YOUR REAL GEMINI KEY (From previous chat)
   GEMINI_API_KEY: "AIzaSyDYG354Y-DKwsf8SNGhReB55_BLh1ySqO0"
 
 ---
@@ -13,13 +12,58 @@ kind: ConfigMap
 metadata:
   name: madina-config
 data:
-  # 🌐 Internal Service Discovery URLs
-  MOBILITY_SERVICE_URL: "http://mobility-service:8000"
+  # 🌐 Service URLs (Gateway connects here)
+  # RENAMED to match Gateway Python Code expectations
+  MOBILITY_URL: "http://mobility-service:8000"
   AIR_QUALITY_WSDL_URL: "http://air-quality-service:8081/ws/airQuality.wsdl"
   EVENTS_SERVICE_URL: "http://events-service:8082/graphql"
+  URGENCE_GRPC_HOST: "urgence-service"
+  URGENCE_GRPC_PORT: "9090"
 
 # ==========================================
-# 🚑 NEW SERVICE: URGENCE BACKEND
+# 🚪 NEW: MADINA GATEWAY
+# ==========================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: madina-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: madina-gateway
+  template:
+    metadata:
+      labels:
+        app: madina-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: dhia2001/madina-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: madina-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: madina-gateway-service
+spec:
+  type: NodePort
+  selector:
+    app: madina-gateway
+  ports:
+    - protocol: TCP
+      port: 80         # Internal Cluster Port
+      targetPort: 8000 # Gateway Container Port
+      nodePort: 30051  # External Access
+
+# ==========================================
+# 🚑 URGENCE BACKEND (Restored)
 # ==========================================
 ---
 apiVersion: v1
@@ -35,11 +79,12 @@ spec:
       protocol: TCP
       port: 9090
       targetPort: 9090
+      nodePort: 30570
     - name: rest
       protocol: TCP
-      port: 8081       # Internal Service Port (Nginx talks to this)
-      targetPort: 9091 # 👈 FIXED: Tomcat is listening on 9091
-      nodePort: 30090  # 👈 FIXED: Moved to 30090 to avoid conflict with Air Quality (30081)
+      port: 8081       # Internal Service Port
+      targetPort: 9091 # Container Port (Tomcat)
+      nodePort: 30090
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -70,7 +115,7 @@ spec:
                   key: GEMINI_API_KEY
 
 # ==========================================
-# 🚑 NEW SERVICE: URGENCE FRONTEND (Small)
+# 🚑 URGENCE FRONTEND (Restored)
 # ==========================================
 ---
 apiVersion: v1
@@ -83,9 +128,9 @@ spec:
     app: urgence-frontend
   ports:
     - protocol: TCP
-      port: 3000        # Internal Cluster Port
-      targetPort: 3000  # Container Port (Nginx)
-      nodePort: 30006   # 🌍 Access: http://localhost:30006
+      port: 3000
+      targetPort: 3000
+      nodePort: 30006
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -109,10 +154,10 @@ spec:
             - containerPort: 3000
 
 # ==========================================
-# 🏙️ EXISTING SERVICES (Your Original Stack)
+# 🏙️ EXISTING SERVICES (Restored Exactly)
 # ==========================================
 
-# 🚌 Service 1: Mobility (REST)
+# 🚌 Mobility (REST)
 ---
 apiVersion: v1
 kind: Service
@@ -149,7 +194,7 @@ spec:
           ports:
             - containerPort: 8000
 
-# ☁️ Service 2: Air Quality (SOAP)
+# ☁️ Air Quality (SOAP)
 ---
 apiVersion: v1
 kind: Service
@@ -161,9 +206,9 @@ spec:
     app: air-quality
   ports:
     - protocol: TCP
-      port: 8081
-      targetPort: 8080
-      nodePort: 30081   # ⚠️ Kept this. That's why Urgence is now on 30090.
+      port: 8081       # Service Port
+      targetPort: 8080 # Container Port (Your Image uses 8080)
+      nodePort: 30081
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -184,14 +229,14 @@ spec:
           image: dhia2001/soc:madina-soap
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8080 # Kept original port
           readinessProbe:
             tcpSocket:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
 
-# 🎉 Service 3: Events/Citizen (GraphQL)
+# 🎉 Events (GraphQL)
 ---
 apiVersion: v1
 kind: Service
@@ -203,8 +248,8 @@ spec:
     app: events
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 8082
+      port: 8082       # Service Port
+      targetPort: 8082 # Container Port (Your Image uses 8082)
       nodePort: 30082
 ---
 apiVersion: apps/v1
@@ -226,9 +271,9 @@ spec:
           image: dhia2001/soc:madina-citizen
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8082
+            - containerPort: 8082 # Kept original port
 
-# 🧠 Service 4: LLM Planner (Orchestrator)
+# 🧠 Planner (LLM)
 ---
 apiVersion: v1
 kind: Service
@@ -263,14 +308,14 @@ spec:
           image: dhia2001/madina-planner-llm:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8001
+            - containerPort: 8001 # Kept original port
           envFrom:
             - configMapRef:
                 name: madina-config
             - secretRef:
                 name: madina-secrets
 
-# 💻 Service 5: Main Frontend (The Big React App)
+# 💻 Main Frontend
 ---
 apiVersion: v1
 kind: Service

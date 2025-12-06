@@ -4,8 +4,8 @@ metadata:
   name: madina-secrets
 type: Opaque
 stringData:
-  # 🔒 YOUR REAL GEMINI KEY (From previous chat)
-  GEMINI_API_KEY: "AIzaSyDYG354Y-DKwsf8SNGhReB55_BLh1ySqO0"
+  # 🔒 YOUR REAL GEMINI KEY (Replace this before applying)
+  GEMINI_API_KEY: "AIzaSyCga06qM6UcETg--oAQkFrKALUf2c9lLTw"
 
 ---
 apiVersion: v1
@@ -17,6 +17,55 @@ data:
   MOBILITY_SERVICE_URL: "http://mobility-service:8000"
   AIR_QUALITY_WSDL_URL: "http://air-quality-service:8081/ws/airQuality.wsdl"
   EVENTS_SERVICE_URL: "http://events-service:8082/graphql"
+  # Add Gateway if needed by other services, though usually Gateway is the entry point
+  GATEWAY_URL: "http://madina-gateway-service:50051"
+
+# ==========================================
+# 🚪 NEW SERVICE: API GATEWAY (gRPC)
+# ==========================================
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: madina-gateway-service
+spec:
+  type: NodePort
+  selector:
+    app: madina-gateway
+  ports:
+    - protocol: TCP
+      port: 50051
+      targetPort: 50051
+      nodePort: 30051   # 🌍 Access gRPC Gateway externally
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: madina-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: madina-gateway
+  template:
+    metadata:
+      labels:
+        app: madina-gateway
+    spec:
+      containers:
+      - name: gateway
+        image: dhia2001/madina-gateway:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 50051
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        # If your Gateway needs to know where Urgence is:
+        - name: URGENCE_SERVICE_HOST
+          value: "urgence-service"
+        - name: URGENCE_SERVICE_PORT
+          value: "9090"
 
 # ==========================================
 # 🚑 NEW SERVICE: URGENCE BACKEND
@@ -37,9 +86,9 @@ spec:
       targetPort: 9090
     - name: rest
       protocol: TCP
-      port: 8081       # Internal Service Port (Nginx talks to this)
-      targetPort: 9091 # 👈 FIXED: Tomcat is listening on 9091
-      nodePort: 30090  # 👈 FIXED: Moved to 30090 to avoid conflict with Air Quality (30081)
+      port: 8081       # Internal Service Port
+      targetPort: 9091 # Tomcat
+      nodePort: 30090  # External Access
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -70,7 +119,7 @@ spec:
                   key: GEMINI_API_KEY
 
 # ==========================================
-# 🚑 NEW SERVICE: URGENCE FRONTEND (Small)
+# 🚑 NEW SERVICE: URGENCE FRONTEND
 # ==========================================
 ---
 apiVersion: v1
@@ -83,8 +132,8 @@ spec:
     app: urgence-frontend
   ports:
     - protocol: TCP
-      port: 3000        # Internal Cluster Port
-      targetPort: 3000  # Container Port (Nginx)
+      port: 3000
+      targetPort: 3000
       nodePort: 30006   # 🌍 Access: http://localhost:30006
 ---
 apiVersion: apps/v1
@@ -109,7 +158,7 @@ spec:
             - containerPort: 3000
 
 # ==========================================
-# 🏙️ EXISTING SERVICES (Your Original Stack)
+# 🏙️ EXISTING SERVICES
 # ==========================================
 
 # 🚌 Service 1: Mobility (REST)
@@ -163,7 +212,7 @@ spec:
     - protocol: TCP
       port: 8081
       targetPort: 8080
-      nodePort: 30081   # ⚠️ Kept this. That's why Urgence is now on 30090.
+      nodePort: 30081
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -270,7 +319,7 @@ spec:
             - secretRef:
                 name: madina-secrets
 
-# 💻 Service 5: Main Frontend (The Big React App)
+# 💻 Service 5: Main Frontend
 ---
 apiVersion: v1
 kind: Service
