@@ -8,6 +8,7 @@ export default defineConfig({
     allowedHosts: [
       // Add your specific tunnel domain here, or use 'all' to allow everything (easiest for tunnels)
       'bidding-ear-occurring-conservation.trycloudflare.com', 
+      "universal-resistance-mall-rewards.trycloudflare.com",
       'all' 
     ],
     proxy: {

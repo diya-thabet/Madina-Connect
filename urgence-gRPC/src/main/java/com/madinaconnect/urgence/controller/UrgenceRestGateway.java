@@ -32,6 +32,7 @@ public class UrgenceRestGateway {
 
     // --- GEMINI CONFIGURATION (UPDATED) ---
     // Using the key and model from your working curl command
+    //*************************************************************************************************************************!!!!!!!!!!!!!!!!!!!!!!! */
     private static final String GEMINI_API_KEY = "AIzaSyDq2Tl5BPTqhtLEslim9H-BBUIROoAdv0I";
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
 

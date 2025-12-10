@@ -4,7 +4,8 @@ metadata:
   name: madina-secrets
 type: Opaque
 stringData:
-  GEMINI_API_KEY: "AIzaSyCHUuDmJiYlo4wkfD9DGR790OPVHvHGOt0"
+  # 🔒 Replace with your actual Gemini API Key
+  GEMINI_API_KEY: ""
 
 ---
 apiVersion: v1
@@ -12,16 +13,16 @@ kind: ConfigMap
 metadata:
   name: madina-config
 data:
-  # 🌐 Service URLs (Gateway connects here)
-  # RENAMED to match Gateway Python Code expectations
-  MOBILITY_URL: "http://mobility-service:8000"
+  # 🌐 Service URLs (Internal Cluster DNS)
+  MOBILITY_SERVICE_URL: "http://mobility-service:8000"
   AIR_QUALITY_WSDL_URL: "http://air-quality-service:8081/ws/airQuality.wsdl"
   EVENTS_SERVICE_URL: "http://events-service:8082/graphql"
-  URGENCE_GRPC_HOST: "urgence-service"
-  URGENCE_GRPC_PORT: "9090"
+  # Gateway specific env vars
+  URGENCE_HOST: "urgence-service"
+  URGENCE_PORT: "9090"
 
 # ==========================================
-# 🚪 NEW: MADINA GATEWAY
+# 🚪 FIXED: MADINA GATEWAY
 # ==========================================
 ---
 apiVersion: apps/v1
@@ -43,7 +44,8 @@ spec:
         image: dhia2001/madina-gateway:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 8000
+        - containerPort: 8000   # HTTP FastAPI
+        - containerPort: 50051  # gRPC
         envFrom:
         - configMapRef:
             name: madina-config
@@ -57,13 +59,21 @@ spec:
   selector:
     app: madina-gateway
   ports:
-    - protocol: TCP
-      port: 80         # Internal Cluster Port
-      targetPort: 8000 # Gateway Container Port
-      nodePort: 30051  # External Access
+    # 1. HTTP API (React connects here via Forwarding)
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30051
+    # 2. gRPC API (Internal Microservices)
+    - name: grpc
+      protocol: TCP
+      port: 50051
+      targetPort: 50051
+      nodePort: 30052
 
 # ==========================================
-# 🚑 URGENCE BACKEND (Restored)
+# 🚑 URGENCE BACKEND
 # ==========================================
 ---
 apiVersion: v1
@@ -115,7 +125,7 @@ spec:
                   key: GEMINI_API_KEY
 
 # ==========================================
-# 🚑 URGENCE FRONTEND (Restored)
+# 🚑 URGENCE FRONTEND
 # ==========================================
 ---
 apiVersion: v1
@@ -154,10 +164,8 @@ spec:
             - containerPort: 3000
 
 # ==========================================
-# 🏙️ EXISTING SERVICES (Restored Exactly)
+# 🚌 MOBILITY SERVICE (REST)
 # ==========================================
-
-# 🚌 Mobility (REST)
 ---
 apiVersion: v1
 kind: Service
@@ -194,7 +202,9 @@ spec:
           ports:
             - containerPort: 8000
 
-# ☁️ Air Quality (SOAP)
+# ==========================================
+# ☁️ AIR QUALITY SERVICE (SOAP)
+# ==========================================
 ---
 apiVersion: v1
 kind: Service
@@ -206,8 +216,8 @@ spec:
     app: air-quality
   ports:
     - protocol: TCP
-      port: 8081       # Service Port
-      targetPort: 8080 # Container Port (Your Image uses 8080)
+      port: 8081
+      targetPort: 8080 # Image uses 8080
       nodePort: 30081
 ---
 apiVersion: apps/v1
@@ -229,14 +239,16 @@ spec:
           image: dhia2001/soc:madina-soap
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080 # Kept original port
+            - containerPort: 8080
           readinessProbe:
             tcpSocket:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
 
-# 🎉 Events (GraphQL)
+# ==========================================
+# 🎉 EVENTS SERVICE (GraphQL)
+# ==========================================
 ---
 apiVersion: v1
 kind: Service
@@ -248,8 +260,8 @@ spec:
     app: events
   ports:
     - protocol: TCP
-      port: 8082       # Service Port
-      targetPort: 8082 # Container Port (Your Image uses 8082)
+      port: 8082
+      targetPort: 8082
       nodePort: 30082
 ---
 apiVersion: apps/v1
@@ -271,9 +283,11 @@ spec:
           image: dhia2001/soc:madina-citizen
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8082 # Kept original port
+            - containerPort: 8082
 
-# 🧠 Planner (LLM)
+# ==========================================
+# 🧠 PLANNER SERVICE (LLM)
+# ==========================================
 ---
 apiVersion: v1
 kind: Service
@@ -308,14 +322,16 @@ spec:
           image: dhia2001/madina-planner-llm:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8001 # Kept original port
+            - containerPort: 8001
           envFrom:
             - configMapRef:
                 name: madina-config
             - secretRef:
                 name: madina-secrets
 
-# 💻 Main Frontend
+# ==========================================
+# 💻 MAIN FRONTEND (React)
+# ==========================================
 ---
 apiVersion: v1
 kind: Service

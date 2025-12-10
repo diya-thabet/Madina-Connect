@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 // Configuration
-const API_URL = "/api";
+const API_URL = "http://localhost:30090/api";
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('dashboard');
