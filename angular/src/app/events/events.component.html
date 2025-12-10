@@ -1,0 +1,134 @@
+<div class="card-events">
+  <div class="header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+          <path d="M8 14h.01"></path>
+          <path d="M12 14h.01"></path>
+          <path d="M16 14h.01"></path>
+          <path d="M8 18h.01"></path>
+          <path d="M12 18h.01"></path>
+          <path d="M16 18h.01"></path>
+        </svg>
+      </div>
+      <h1>List Of Upcoming Events</h1>
+    </div>
+        <hr class="custom-line">
+
+    <p class="subtitle">Discover amazing events curated just for you, and dive into unforgettable experiences!
+From the vibrant energy of live music concerts to the enchanting world of theatre performances,
+our platform brings you a wide variety of activities tailored to your interests.
+Step into the magic of cinema with screenings of the latest blockbusters and timeless classics.
+Experience the grandeur of opera and classical performances that captivate and inspire.
+Engage with local art exhibitions, festivals, and cultural events happening near you.
+Our carefully selected events promise to create memorable moments with friends and family.
+Join us in celebrating the excitement, creativity, and diversity of experiences waiting for you! and dive into unforgettable experiences !</p>
+
+  </div>
+
+  <!-- Categories Section -->
+  <div class="categories-container">
+    <div 
+      *ngFor="let category of categories" 
+      class="category-card"
+      [class.active]="selectedCategory === category.name">
+      
+      <div class="category-background" 
+           [style.background-image]="'url(' + category.bgImage + ')'"
+           [style.background]="category.bgGradient ? 'linear-gradient(' + category.bgGradient + '), url(' + category.bgImage + ')' : 'url(' + category.bgImage + ')'">
+        <div class="category-overlay"></div>
+      </div>
+      
+      <div class="category-content">
+        <div class="eye-icon" (click)="selectCategory(category.name); $event.stopPropagation()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </div>
+        <h3 class="category-title">{{ category.name }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="events-section" *ngIf="selectedCategory" [@slideIn]>
+      <!-- Search + Filter -->
+  <div class="events-controls">
+    <input type="text" placeholder="Search your event Now ..." class="search-input">
+
+    <!-- Dropdown Filter -->
+    <div class="dropdown">
+    
+      <button class="dropbtn"><i class="bi bi-filter-left"></i> Sorted By</button>
+      <div class="dropdown-content">
+        <a href="#"><i class="bi bi-1-circle-fill"></i> Day</a>
+        <a href="#"><i class="bi bi-7-square"></i> Week</a>
+        <a href="#"><i class="bi bi-calendar-minus"></i> Month</a>
+      </div>
+    </div>
+  </div>
+    <div class="events-grid">
+      <div 
+        *ngFor="let event of paginatedEvents" 
+        class="event-card"
+        [@fadeIn]>
+        
+        <div class="event-image">
+          <img [src]="event.image" [alt]="event.title">
+          <div class="price-badge">{{ event.price }}</div>
+          <div class="action-buttons">
+            <button class="icon-btn share">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </button>
+            <button class="icon-btn favorite">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="event-details">
+  <div class="event-left">
+    <h4 class="event-title">{{ event.title }}</h4>
+    <p class="event-description">{{ event.description }}</p>
+    <p class="event-location">{{ event.location }}</p>
+  </div>
+
+  <div class="event-right">
+    <span class="event-month">{{ event.date.split(' ')[0] }}</span>
+    <span class="event-day">{{ event.date.split(' ')[1] }}</span>
+  </div>
+</div>
+
+        
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      
+
+      <div class="page-indicators">
+        <span 
+          *ngFor="let page of [].constructor(totalPages); let i = index"
+          class="page-dot"
+          [class.active]="i === currentPage"
+          (click)="currentPage = i">
+        </span>
+      </div>
+
+     
+    </div>
+  </div>
+</div>

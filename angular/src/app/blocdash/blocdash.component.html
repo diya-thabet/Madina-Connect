@@ -1,0 +1,15 @@
+<app-navbar (tabSelected)="onTabSelected($event)"></app-navbar>
+
+<div 
+  class="main-layout" 
+  [ngClass]="{'main-layout-chat': selectedTab === 0}">
+  
+ <app-sidebar [isChatMode]="selectedTab === 0"></app-sidebar>
+
+
+  <app-enichatbot *ngIf="selectedTab === 0"  [isEniChat]="selectedTab === 0"></app-enichatbot>
+  <app-events *ngIf="selectedTab === 1"></app-events>
+  <app-citystats *ngIf="selectedTab === 2"></app-citystats>
+  <app-contact *ngIf="selectedTab === 3"></app-contact>
+  <app-settings *ngIf="selectedTab === 4"></app-settings>
+</div>

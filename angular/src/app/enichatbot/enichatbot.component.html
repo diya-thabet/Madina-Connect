@@ -1,0 +1,150 @@
+<div class="chatbot-container" [ngClass]="{ 'chat-mode': isEniChat }">
+
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <i class="bi bi-chat-dots"></i>
+        </div>
+        <h1 class="logo-text">ENI Assistant</h1>
+      </div>
+      
+      <button class="new-chat-btn" (click)="handleNewChat()">
+        <i class="bi bi-plus-lg"></i>
+        <span>New Conversation</span>
+      </button>
+    </div>
+
+    <div class="search-section">
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Search..." [(ngModel)]="searchQuery">
+      </div>
+    </div>
+
+    <div class="chat-history">
+      <div class="history-header">
+        <h3>Recent</h3>
+      </div>
+      <div 
+        *ngFor="let chat of chats" 
+        class="chat-item" 
+        [class.active]="activeChat === chat.id"
+        (click)="selectChat(chat.id)">
+        <i class="bi bi-chat-left-text"></i>
+        <div class="chat-item-content">
+          <span class="chat-title">{{chat.title}}</span>
+          <span class="chat-date">{{chat.date}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="footer-btn">
+        <i class="bi bi-gear"></i>
+        <span>Settings</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="chat-main">
+
+    <!-- Welcome Screen -->
+    <div *ngIf="messages.length === 0" class="welcome-screen">
+      <div class="welcome-content">
+        <div class="welcome-icon">✨</div>
+        <h2 class="welcome-title">Welcome, In ENI Assistant.</h2>
+<p class="welcome-subtitle"><span class="typing">How can I assist you?</span></p>
+
+
+
+        <!-- Temporary input above suggestions -->
+        <div class="input-container top-input">
+          <div class="input-wrapper">
+            <button class="attach-btn" title="Attach a file">
+              <i class="bi bi-paperclip"></i>
+            </button>
+            <input
+              type="text"
+              placeholder="Start a conversation I’m ready when you are.."
+              [(ngModel)]="inputValue"
+              (keypress)="onKeyPress($event)"
+              #messageInput>
+            <button 
+              class="send-btn" 
+              (click)="handleSend()"
+              [disabled]="!inputValue.trim()">
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </div>
+          <p class="input-info">
+            ENI Assistant may make mistakes. Please verify important information.
+          </p>
+        </div>
+
+        <div class="suggestion-cards">
+          <div class="suggestion-card" (click)="useSuggestion('How to create an Angular application?')">
+            <div class="suggestion-icon">💻</div>
+            <p>How to create an Angular application?</p>
+          </div>
+          <div class="suggestion-card" (click)="useSuggestion('Help me optimize my CSS')">
+            <div class="suggestion-icon">🎨</div>
+            <p>Help me optimize my CSS</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" #messagesContainer>
+      <div *ngFor="let message of messages" class="message-wrapper" [class.user]="message.sender === 'user'" [@messageAnimation]>
+        <div *ngIf="message.sender === 'bot'" class="bot-avatar">
+          <i class="bi bi-chat-dots"></i>
+        </div>
+        <div class="message" [class.bot]="message.sender === 'bot'" [class.user]="message.sender === 'user'">
+          <p>{{message.text}}</p>
+          <span class="message-time">{{message.timestamp}}</span>
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div *ngIf="isTyping" class="message-wrapper" [@messageAnimation]>
+        <div class="bot-avatar">
+          <i class="bi bi-chat-dots"></i>
+        </div>
+        <div class="message bot typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fixed input at the bottom after first message -->
+    <div *ngIf="messages.length > 0" class="input-container bottom-input">
+      <div class="input-wrapper">
+        <button class="attach-btn" title="Attach a file">
+          <i class="bi bi-paperclip"></i>
+        </button>
+        <input
+          type="text"
+          placeholder="How can I assist you?"
+          [(ngModel)]="inputValue"
+          (keypress)="onKeyPress($event)"
+          #messageInput>
+        <button 
+          class="send-btn" 
+          (click)="handleSend()"
+          [disabled]="!inputValue.trim()">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <p class="input-info">
+        ENI Assistant may make mistakes. Please verify important information.
+      </p>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,28 @@
+<div class="topbar">
+  <div class="logoo">
+<img src="assets/img/logo.png" alt="Logo">
+  </div>
+    <div class="tab-bar">
+  <button 
+    *ngFor="let tab of tabs; let i = index" 
+    (click)="selectTab(i)" 
+    [class.active]="selectedTab === i">
+    {{tab}}
+  </button>
+</div>
+<div class="user-badge">
+  <span class="user-avatar-wrap">
+    <img class="user-avatar" [src]="avatarUrl" [alt]="userName"/>
+    <span class="user-online-dot"></span>
+  </span>
+  <span class="user-info">
+    <span class="user-name">{{ userName }}</span>
+    <span class="user-location">
+      <i class="bi bi-geo-alt"></i> {{ userLocation }}
+    </span>
+  </span>
+  <span class="user-arrow">
+    <i class="bi bi-chevron-down"></i>
+  </span>
+</div>
+</div>

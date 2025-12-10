@@ -1,0 +1,192 @@
+<!-- Animated Background -->
+<div class="animated-background">
+  <div class="gradient-orb orb-1"></div>
+  <div class="gradient-orb orb-2"></div>
+  <div class="gradient-orb orb-3"></div>
+  <div class="gradient-orb orb-4"></div>
+  <div class="floating-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+</div>
+
+<div class="card-events">
+  <!-- Title + Icon -->
+  <div class="header-section">
+    <div class="header-icon">
+      <i class="bi bi-bar-chart-fill"></i>
+    </div>
+    <h1 class="main-title">City Performance Comparison</h1>
+    <p class="subtitle">Compare two cities in terms of quality of life, weather, air quality and more.</p>
+  </div>
+  
+  <!-- Comparison Section -->
+  <div class="compare-container">
+    <!-- City A -->
+    <div class="city-block left">
+      <img src="assets/img/6503066.png" alt="City Icon" class="city-icon" />
+      <span>City A</span>
+      <input type="text" placeholder="Enter City A..." class="city-input-box" [(ngModel)]="cityA">
+    </div>
+    
+    <!-- Animated Line -->
+    <div class="dashed-line" [class.active]="compareAnimation"></div>
+    
+    <!-- City B -->
+    <div class="city-block right">
+      <img src="assets/img/3301591.png" alt="City Icon" class="city-icon" />
+      <span>City B</span>
+      <input type="text" placeholder="Enter City B..." class="city-input-box" [(ngModel)]="cityB">
+    </div>
+    
+    <!-- Compare Button -->
+    <div class="compare-btn-wrapper">
+      <button class="compare-btn" (click)="compareCities()">Compare</button>
+    </div>
+    
+    <div *ngIf="showComparisonMsg" class="comparison-message">
+      <i class="bi bi-exclamation-triangle-fill warn-icon"></i>
+      <span>The best quality of life is currently in <b>{{ bestCity }}</b>.</span>
+    </div>
+  </div>
+  
+  <hr class="divider">
+  
+  <!-- Weather Section -->
+  <div class="weather-section">
+    <div class="weather-header">
+      <i class="bi bi-cloud-sun-fill weather-icon"></i>
+      <h2 class="weather-title">Check your city's weather & air quality</h2>
+    </div>
+    <div class="input-area">
+      <input type="text" placeholder="Enter your city..." class="city-input">
+      <button class="check-btn" (click)="checkCity()">
+        <i class="bi bi-check2"></i>
+      </button>
+    </div>
+    
+    <!-- Weather Card -->
+<div *ngIf="showWeatherCard" class="weather-card">
+  
+  <!-- Weather -->
+  <div class="weather-item">
+    <i class="bi bi-cloud-fill"></i>
+    <h4>Status</h4>
+    <p>{{ weatherStatus }}</p>
+  </div>
+
+  <!-- Temperature -->
+  
+
+  <!-- AQI -->
+  <div class="weather-item">
+    <i class="bi bi-speedometer"></i>
+    <h4>Air Quality Index (AQI)</h4>
+    <p>{{ aqi }}</p>
+  </div>
+
+  <!-- PM10 -->
+  <div class="weather-item">
+    <i class="bi bi-cloud-haze2"></i>
+    <h4>PM10</h4>
+    <p>{{ pm10 }} µg/m³</p>
+  </div>
+
+  <!-- PM2.5 -->
+  <div class="weather-item">
+    <i class="bi bi-cloud-haze"></i>
+    <h4>PM2.5</h4>
+    <p>{{ pm25 }} µg/m³</p>
+  </div>
+
+  <!-- NO2 -->
+  <div class="weather-item">
+    <i class="bi bi-building"></i>
+    <h4>NO₂</h4>
+    <p>{{ no2 }} µg/m³</p>
+  </div>
+
+  <!-- CO2 -->
+  <div class="weather-item">
+    <i class="bi bi-fire"></i>
+    <h4>CO₂</h4>
+    <p>{{ co2 }} ppm</p>
+  </div>
+
+  <!-- O3 -->
+  <div class="weather-item">
+    <i class="bi bi-lightning-charge-fill"></i>
+    <h4>O₃</h4>
+    <p>{{ o3 }} µg/m³</p>
+  </div>
+
+</div>
+
+  </div>
+
+  <div class="transport-wrapper">
+
+  <!-- Background Map -->
+  <div class="map-bg"></div>
+
+  <!-- Main Card -->
+  <div class="transport-card">
+
+    <div class="transport-header">
+      <img src="assets/img/téléchargement-Photoroom.png" class="transport-icon" alt="Transport Icon">
+      <h2>Check Your Transport Schedule</h2>
+    </div>
+
+    <div class="input-zone">
+      <input 
+        type="text"
+        class="transport-input"
+        placeholder="Enter your station name..."
+        [(ngModel)]="station"
+      />
+      <button class="verify-btn" (click)="verifySchedule()">Verify  <i class="bi bi-patch-check"></i> </button>
+    </div>
+
+    <div *ngIf="showAlert" class="nice-alert">
+      ✔ Schedule fetched successfully!
+    </div>
+
+    
+  <!-- Transport Cards -->
+  <div class="transport-list">
+
+    <div class="t-card">
+      <img src="assets/img/9249336.png" class="t-icon">
+      <h3>Bus</h3>
+      <p class="time">{{ busTime }}</p>
+    </div>
+
+    <div class="t-card">
+      <img src="assets/img/images (5)-Photoroom.png" class="t-icon">
+      <h3>Train</h3>
+      <p class="time">{{ trainTime }}</p>
+    </div>
+
+    <div class="t-card">
+      <img src="assets/img/téléchargement (1)-Photoroom.png" class="t-icon">
+      <h3>Metro</h3>
+      <p class="time">{{ metroTime }}</p>
+    </div>
+
+  </div>
+  </div>
+
+
+</div>
+
+
+  
+</div>
